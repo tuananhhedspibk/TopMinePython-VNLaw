@@ -1,0 +1,7 @@
+topmine/topmine_src/*.pyc
+topmine/output/*
+topmine/intermediate_output/*
+topmine/input/*
+*.pyc
+input/*
+

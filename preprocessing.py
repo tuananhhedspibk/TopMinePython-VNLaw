@@ -11,13 +11,16 @@ dir = os.path.dirname(__file__)
 
 def handle_string(input_string):
 
+  input_string = input_string.decode("utf-8").lower().encode("utf-8")
+
+  for pattern in REDUNDANT_STRING_PATTERN:
+    input_string = re.sub(pattern, "", input_string)
+
   for symbol in REDUNDANT_SYMBOL:
     if symbol == "\\n":
       input_string = input_string.replace(symbol, ". ")
     else:
       input_string = input_string.replace(symbol, "")
-  for pattern in REDUNDANT_PATTERN:
-    input_string = re.sub(pattern, "", input_string)
 
   return input_string
 

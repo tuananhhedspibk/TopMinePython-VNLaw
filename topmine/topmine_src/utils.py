@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from sklearn.metrics.pairwise import euclidean_distances
+
 import sys
-sys.path.insert(0, '/home/mylaptop/Program/GR/LDA/TopMine')
+sys.path.insert(0, "/home/mylaptop/Program/GR/LDA/TopMine")
 
 from settings import *
 import re
+import numpy as np
 
 def store_partitioned_docs(partitioned_docs, path="intermediate_output/partitioneddocs.txt"):
   f = open(path, "w")
@@ -74,19 +77,22 @@ def store_most_frequent_topics(most_frequent_topics, prefix_path="output/topic")
 def handle_string(input):
   forbiden_symbol = ["%", ":", "_", "“", "/"]
   if input != None:
-    input = input.lower()
-    input = input.translate(translate_map)
+    input = input.decode("utf-8").lower()
+    input = input.encode("utf-8")
     for symbol in forbiden_symbol:
       input = input.replace(symbol, " ")
     return input.strip()
   return None
 
-def filter_most_important_topics(docs_topic_info):
+def filter_most_important_topics(docs_topic_info, standard_lize):
   for doc in docs_topic_info:
+    _sum = sum(doc)
     topics_filter_thres = float(sum(doc)) / float(len(doc))
     for idx, topic_count in enumerate(doc):
       if float(topic_count) / float(topics_filter_thres) < 1:
         doc[idx] = 0
+      if standard_lize:
+        doc[idx] = float(doc[idx]) / float(_sum)
   return docs_topic_info
 
 def get_string_phrase(documents, doc_idx, phrase_idx, index_vocab):
@@ -101,7 +107,7 @@ def extract_most_frequent_phrase(topics, documents, doc_idx, phrase_index, index
         for phrase, val in topic.most_common():
           if len(phrase.split(" ")) > 1:
             phrase_core_string = _get_string_phrase(phrase, index_vocab)
-            if ex_phrase == phrase_core_string:
+            if ex_phrase.decode("utf-8") == phrase_core_string.decode("utf-8"):
               return handle_string(ex_phrase)
       else:
         top_ct = 0
@@ -109,7 +115,7 @@ def extract_most_frequent_phrase(topics, documents, doc_idx, phrase_index, index
           if top_ct < 3:
             if len(phrase.split(" ")) > 1:
               phrase_core_string = _get_string_phrase(phrase, index_vocab)
-              if ex_phrase == phrase_core_string:
+              if ex_phrase.decode("utf-8") == phrase_core_string.decode("utf-8"):
                 return handle_string(ex_phrase)
               top_ct += 1
       return ""
@@ -134,8 +140,11 @@ def write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_inf
 def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, index_vocab, num_topics, topics):
   output_file_name = "output/phrase_topics_pro.txt"
   f = open(output_file_name, "w")
-  docs_topic_info = filter_most_important_topics(docs_topic_info)
+  docs_topic_info_standard = docs_topic_info
+  filter_most_important_topics(docs_topic_info_standard, True)
+  filter_most_important_topics(docs_topic_info, False)
   documents_tp_ph_repre = {}
+  print docs_topic_info_standard
   for doc_idx, document in enumerate(document_phrase_topics):
     ph_extracted_ct = 0
     documents_tp_ph_repre[doc_idx] = {}
@@ -147,6 +156,12 @@ def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, 
       write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, f, True)
     f.write("\n")
   f.close()
+  return docs_topic_info_standard
+
+def compute_distance_between_articles(docs_topic_info):
+  dis_array = np.array(euclidean_distances(docs_topic_info))
+  recommend_results = np.argsort(dis_array)
+  print recommend_results
 
 def _get_string_phrase(phrase, index_vocab):
   """

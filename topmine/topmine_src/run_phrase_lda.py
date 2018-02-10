@@ -22,4 +22,6 @@ document_phrase_topics, most_frequent_topics, docs_topic_info, topics = plda.run
 
 utils.store_phrase_topics(document_phrase_topics)
 utils.store_most_frequent_topics(most_frequent_topics)
-utils.store_phrase_topics_pro(partitioned_docs, docs_topic_info, document_phrase_topics, vocab_file, num_topics, topics)
+docs_topic_info_standard = utils.store_phrase_topics_pro(partitioned_docs, docs_topic_info, document_phrase_topics, vocab_file, num_topics, topics)
+
+utils.compute_distance_between_articles(docs_topic_info_standard)

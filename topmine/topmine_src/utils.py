@@ -4,18 +4,18 @@ from sklearn.metrics.pairwise import euclidean_distances
 
 import sys
 sys.path.insert(0, "/home/mylaptop/Program/GR/LDA/TopMine")
-
 from settings import *
+
 import re
 import numpy as np
 
-def store_partitioned_docs(partitioned_docs, path="intermediate_output/partitioneddocs.txt"):
+def store_partitioned_docs(partitioned_docs, path=PARTITION_DOCS_FILE_NAME):
   f = open(path, "w")
   for document in partitioned_docs:
     f.write(", ".join(" ".join(str(word) for word in phrase) for phrase in document))
     f.write("\n")
 
-def load_partitioned_docs(path="intermediate_output/partitioneddocs.txt"):
+def load_partitioned_docs(path=PARTITION_DOCS_FILE_NAME):
   f = open(path, "r")
   partitioned_docs = []
   document_index = 0
@@ -31,16 +31,16 @@ def load_partitioned_docs(path="intermediate_output/partitioneddocs.txt"):
     partitioned_docs.append(partitioned_doc)
   return partitioned_docs
 
-def store_vocab(index_vocab, path="intermediate_output/vocab.txt"):
+def store_vocab(index_vocab, path=VOCAB_FILE_NAME):
   """
   Stores vocabulary into a file.
   """
-  f = open("intermediate_output/vocab.txt", "w")
+  f = open(VOCAB_FILE_NAME, "w")
   for word in index_vocab:
     f.write(word + "\n")
   f.close()
 
-def load_vocab(path="intermediate_output/vocab.txt"):
+def load_vocab(path=VOCAB_FILE_NAME):
   """
   Loads vocabulary from a file.
   """
@@ -51,13 +51,13 @@ def load_vocab(path="intermediate_output/vocab.txt"):
       index_vocab.append(line.replace("\n", ""))
   return index_vocab
 
-def store_frequent_phrases(frequent_phrases, path="output/frequent_phrases.txt"):
+def store_frequent_phrases(frequent_phrases, path=FREQUENT_PHRASES_FILE_NAME):
   f = open(path, "w")
   for phrase, val in enumerate(frequent_phrases):
     f.write(str.format("{0} {1}\n",phrase, val))
   f.close()
 
-def store_phrase_topics(document_phrase_topics, path="intermediate_output/phrase_topics.txt"):
+def store_phrase_topics(document_phrase_topics, path=PHRASE_TOPICS_FILE_NAME):
   """
   Stores topic for each phrase in the document.
   """
@@ -138,13 +138,12 @@ def write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_inf
   return ph_extracted_ct
 
 def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, index_vocab, num_topics, topics):
-  output_file_name = "output/phrase_topics_pro.txt"
+  output_file_name = PHRASE_TOPICS_PRO_FILE_NAME
   f = open(output_file_name, "w")
   docs_topic_info_standard = docs_topic_info
   filter_most_important_topics(docs_topic_info_standard, True)
   filter_most_important_topics(docs_topic_info, False)
   documents_tp_ph_repre = {}
-  print docs_topic_info_standard
   for doc_idx, document in enumerate(document_phrase_topics):
     ph_extracted_ct = 0
     documents_tp_ph_repre[doc_idx] = {}
@@ -161,7 +160,15 @@ def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, 
 def compute_distance_between_articles(docs_topic_info):
   dis_array = np.array(euclidean_distances(docs_topic_info))
   recommend_results = np.argsort(dis_array)
-  print recommend_results
+  _store_neighbor_article(recommend_results)
+
+def _store_neighbor_article(data):
+  f = open(NEIGHBOR_ARTICLES_FILE_NAME, "w")
+  for item in data:
+    for article_idx in item:
+      f.write(str(article_idx) + " ")
+    f.write("\n")
+  f.close()
 
 def _get_string_phrase(phrase, index_vocab):
   """

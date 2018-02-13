@@ -10,6 +10,13 @@ PROCESSED_INPUT_DATA_FILE_NAME = "./topmine/input/data.txt"
 INPUT_STOPWORDS_FILE_NAME = "./input/vietnamese-stopwords.txt"
 PROCESSED_INPUT_STOPWORDS_FILE_NAME = "./topmine/topmine_src/stopwords.txt"
 
+PARTITION_DOCS_FILE_NAME = "intermediate_output/partitioneddocs.txt"
+VOCAB_FILE_NAME = "intermediate_output/vocab.txt"
+PHRASE_TOPICS_FILE_NAME = "intermediate_output/phrase_topics.txt"
+FREQUENT_PHRASES_FILE_NAME = "output/frequent_phrases.txt"
+NEIGHBOR_ARTICLES_FILE_NAME = "output/neighbor_articles.txt"
+PHRASE_TOPICS_PRO_FILE_NAME = "output/phrase_topics_pro.txt"
+
 PARAM_BUILD_DATA = "build_data"
 PARAM_BUILD_SW = "build_stopwords"
 
@@ -32,14 +39,20 @@ REDUNDANT_STRING_PATTERN = ["điều \d{1,2}", "khoản \d{1,2}",
 FORBIDEN_SYMBOL_TOPICS = ["_", "%", "|", "\\", ":"]
 
 QUERY_INSERT_AI_TO_ARTICLES = """
-  INSERT INTO articles(article_id) VALUES(%s);
+  INSERT INTO articles(article_id, created_at, updated_at)
+    VALUES(%s, %s, %s);
 """
+
 QUERY_INSERT_INTO_ARTICLE_TOPICS = """
-  INSERT INTO article_topics(topic_id, article_id) VALUES(%s, %s);
+  INSERT INTO articles_topics(article_id, topics, created_at, updated_at)
+    VALUES(%s, %s, %s, %s);
 """
-QUERY_INSERT_TO_TOPICS = """
-  INSERT INTO topics(id, value) VALUES(%s, %s);
+
+QUERY_INSERT_INTO_ARTICLE_NEIGHBORS = """
+  INSERT INTO article_neighbors(source_id, neighbor_id, level, created_at, updated_at)
+    VALUES(%s, %s, %s, %s, %s);
 """
-QUERY_SELECT_ARTICLE_ID = """
+
+QUERY_SELECT_ARTICLES_ID = """
   SELECT article_id FROM articles;
 """

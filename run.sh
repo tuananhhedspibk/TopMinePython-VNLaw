@@ -2,5 +2,5 @@
 
 cd topmine/
 python topmine.py
-#cd ../
-#python dump.py
+cd ../
+python dump.py

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from pyvi.pyvi import ViTokenizer
+from settings import *
+
 import sys
 import re
 import os
 import psycopg2
-from settings import *
+import datetime
 
 dir = os.path.dirname(__file__)
 
@@ -59,7 +61,9 @@ def handle_file(input_file_path, output_file_path, delimiter, need_to_checked):
       if need_to_checked:
         cut_data = line.split("\t")[1]
         cut_id = line.split("\t")[0]
-        cur.execute(QUERY_INSERT_AI_TO_ARTICLES, [cut_id])
+        cur.execute(QUERY_INSERT_AI_TO_ARTICLES, [cut_id,
+          datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+          datetime.datetime.now().strftime("%Y-%m-%d %H:%M")])
         db_con.commit()
         if len(cut_data.strip()) <= 2 or "file:///" in cut_data:
           continue

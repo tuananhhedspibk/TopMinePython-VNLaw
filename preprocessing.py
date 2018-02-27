@@ -42,7 +42,7 @@ def is_forbidden_string(input_string):
   return False
 
 def pyviConvert(input_str):
-  input_str = unicode(input_str, "utf-8")
+  input_str = input_str.decode("utf-8", errors="replace")
   input_str = ViTokenizer.tokenize(input_str)
   input_str = input_str.encode("utf-8")
   return input_str

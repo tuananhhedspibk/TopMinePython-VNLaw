@@ -78,20 +78,19 @@ class AHCTC:
 
     while len(current_clusters) > 1:
       tmp_proximity =  float("+inf")
-      mi = 0
-      mj = 0
       ci = 0
       cj = 0
       for c_id, data in current_clusters.items():
         for c_id_1, data_1 in current_clusters.items():
           if c_id != c_id_1:
-            tmp_mi = ahctc.sup(c_id, current_clusters)
-            tmp_mj = ahctc.sup(c_id_1, current_clusters)
-            if tmp_proximity > ahctc.euclidean_distance(self.d_p_c_l[tmp_mi], self.d_p_c_l[tmp_mj]):
-              mi = tmp_mi
-              mj = tmp_mj
+            tmp_mi = self.sup(c_id, current_clusters)
+            tmp_mj = self.sup(c_id_1, current_clusters)
+            dis = self.euclidean_distance(self.d_p_c_l[tmp_mi], self.d_p_c_l[tmp_mj])
+            if tmp_proximity > dis:
               ci = c_id
               cj = c_id_1
+              tmp_proximity = dis
+
       c_ids_l = [ci, cj]
       n_c_id = max(current_clusters, key=int) + 1
       current_clusters[n_c_id] = {}
@@ -102,30 +101,55 @@ class AHCTC:
             for id in current_clusters[c_id]["data_points"]:
               current_clusters[n_c_id]["data_points"].append(id)
             c_ids_l.remove(c_id)
+        else:
+          break
       
-      ahctc.set_sup(n_c_id, current_clusters)
-      sup_m = ahctc.sup(n_c_id, current_clusters)
-      sup_ci = ahctc.sup(ci, current_clusters)
-      sup_cj = ahctc.sup(cj, current_clusters)
+      self.set_sup(n_c_id, current_clusters)
+      sup_m = self.sup(n_c_id, current_clusters)
+      sup_ci = self.sup(ci, current_clusters)
+      sup_cj = self.sup(cj, current_clusters)
       if sup_m == sup_ci:
         self.T[sup_m][sup_cj] = 1
       elif sup_m == sup_cj:
         self.T[sup_m][sup_ci] = 1
       else:
-        k = ahctc.find_sup(sup_m)
-        self.T[k][sup_m] = 0
-        for g in range(self.dataset_size):
-          if self.T[sup_m][g] == 1:
-            self.T[sup_m][g] = 0
-            self.T[k][g] = 1
-        self.T[sup_m][sup_ci] = 1
-        self.T[sup_m][sup_cj] = 1
+        k = self.find_sup(sup_m)
+        if k > -1:
+          self.T[k][sup_m] = 0
+          for g in range(self.dataset_size):
+            if self.T[sup_m][g] == 1:
+              self.T[sup_m][g] = 0
+              self.T[k][g] = 1
+          self.T[sup_m][sup_ci] = 1
+          self.T[sup_m][sup_cj] = 1
       del current_clusters[ci]
       del current_clusters[cj]
 
     return current_clusters
 
+  def show_graph_with_labels(self):
+    rows, cols = numpy.where(self.T == 1)
+    edges = zip(rows.tolist(), cols.tolist())
+    gr = nx.Graph()
+    gr.add_edges_from(edges)
+    nx.draw(gr, node_size=500, with_labels=True)
+    plt.show()
+
   def load_data(self, input_file_name):
+    """
+      dataset's structure:
+      dataset[cluster_id]
+      dataset[cluster_id][data_points]: list data points's id in cluster
+      dataset[cluster_id][supertype]: supertype of cluster -
+        same as mediod - centroid of cluster
+
+      d_p_c_l: list coordinate of phrase in topic's space
+      d_p_p_l: list phrase value of phrase
+
+      T: adjacent matrix that store resultant taxonomy, tij = 1 when di is
+        the direct supertype of dj
+    """
+
     input_file = open(input_file_name, "r")
     dataset = {}
     clusters = []
@@ -137,7 +161,9 @@ class AHCTC:
       line = line.strip("\n").split("@")
       row = str(line[1])
       row = row.split(",")
+      row = map(int, row)
 
+      # First time, each data point is distinct cluster
       dataset[id] = {}
       dataset[id]["data_points"] = []
       dataset[id]["data_points"].append(id)
@@ -154,21 +180,12 @@ class AHCTC:
   def quit(self, err_desc):
     raise SystemExit("\n" + "PROGRAM EXIT: " + err_desc + ", please check your input" + "\n")
 
-def show_graph_with_labels(adjacency_matrix):
-  rows, cols = numpy.where(adjacency_matrix == 1)
-  edges = zip(rows.tolist(), cols.tolist())
-  gr = nx.Graph()
-  gr.add_edges_from(edges)
-  nx.draw(gr, node_size=500, with_labels=True)
-  plt.show()
-
 if __name__ == "__main__":
   ipt_data = sys.argv[1]
 
   ahctc = AHCTC(ipt_data)
   ahctc.initialize()
   current_clusters = ahctc.agglomerative_hierarchical_clustering()
-  print current_clusters
-  
   numpy.savetxt('./topmine/output/T.csv', ahctc.T, fmt='%.0f')
-  show_graph_with_labels(ahctc.T)
+  print current_clusters
+  ahctc.show_graph_with_labels()

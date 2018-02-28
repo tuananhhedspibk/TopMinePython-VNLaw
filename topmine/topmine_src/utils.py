@@ -84,22 +84,28 @@ def handle_string(input):
     return input.strip()
   return None
 
-def filter_most_important_topics(docs_topic_info, standard_lize):
+def standardized_data(docs_topic_info):
+  for doc in docs_topic_info:
+    _sum = sum(doc)
+    for idx, topic_count in enumerate(doc):
+      doc[idx] = float(doc[idx]) / float(_sum)
+  return docs_topic_info
+
+def filter_most_important_topics(docs_topic_info):
   for doc in docs_topic_info:
     _sum = sum(doc)
     topics_filter_thres = float(sum(doc)) / float(len(doc))
     for idx, topic_count in enumerate(doc):
       if float(topic_count) / float(topics_filter_thres) < 1:
         doc[idx] = 0
-      if standard_lize:
-        doc[idx] = float(doc[idx]) / float(_sum)
   return docs_topic_info
 
 def get_string_phrase(documents, doc_idx, phrase_idx, index_vocab):
-  return _get_string_phrase(" ".join(str(word) for word in documents[doc_idx][phrase_idx]), index_vocab)
+  words_list = " ".join(str(word) for word in documents[doc_idx][phrase_idx])
+  return _get_string_phrase(words_list, index_vocab), words_list
 
 def extract_most_frequent_phrase(topics, documents, doc_idx, phrase_index, index_vocab, ph_tp, forceAll):
-  ex_phrase = get_string_phrase(documents, doc_idx, phrase_index, index_vocab)
+  ex_phrase, p_w_l = get_string_phrase(documents, doc_idx, phrase_index, index_vocab)
   topic_index = 0
   for topic in topics:
     if topic_index == ph_tp:
@@ -108,7 +114,7 @@ def extract_most_frequent_phrase(topics, documents, doc_idx, phrase_index, index
           if len(phrase.split(" ")) > 1:
             phrase_core_string = _get_string_phrase(phrase, index_vocab)
             if ex_phrase.decode("utf-8") == phrase_core_string.decode("utf-8"):
-              return handle_string(ex_phrase)
+              return handle_string(ex_phrase), p_w_l
       else:
         top_ct = 0
         for phrase, val in topic.most_common():
@@ -116,15 +122,16 @@ def extract_most_frequent_phrase(topics, documents, doc_idx, phrase_index, index
             if len(phrase.split(" ")) > 1:
               phrase_core_string = _get_string_phrase(phrase, index_vocab)
               if ex_phrase.decode("utf-8") == phrase_core_string.decode("utf-8"):
-                return handle_string(ex_phrase)
+                return handle_string(ex_phrase), p_w_l
               top_ct += 1
-      return ""
+      return "", ""
     topic_index += 1
 
 def write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, f, forceAll):
   for phrase_idx, topic_index in enumerate(document):
     if docs_topic_info[doc_idx][topic_index] > 0:
-      phrase_extracted = extract_most_frequent_phrase(topics, documents, doc_idx, phrase_idx, index_vocab, topic_index, forceAll)
+      phrase_extracted, original_phrase = extract_most_frequent_phrase(topics, documents,
+        doc_idx, phrase_idx, index_vocab, topic_index, forceAll)
       if phrase_extracted != "":
         already_had_phrase = False
         for topic, phrases_list in documents_tp_ph_repre[doc_idx].items():
@@ -133,7 +140,7 @@ def write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_inf
             break
         if not already_had_phrase:
           ph_extracted_ct += 1
-          documents_tp_ph_repre[doc_idx][topic_index].append(phrase_extracted)
+          documents_tp_ph_repre[doc_idx][topic_index].append(original_phrase)
           f.write(phrase_extracted + ",")
   return ph_extracted_ct
 
@@ -141,8 +148,8 @@ def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, 
   output_file_name = PHRASE_TOPICS_PRO_FILE_NAME
   f = open(output_file_name, "w")
   docs_topic_info_standard = docs_topic_info
-  filter_most_important_topics(docs_topic_info_standard, True)
-  filter_most_important_topics(docs_topic_info, False)
+  standardized_data(docs_topic_info_standard)
+  filter_most_important_topics(docs_topic_info)
   documents_tp_ph_repre = {}
   for doc_idx, document in enumerate(document_phrase_topics):
     ph_extracted_ct = 0
@@ -155,7 +162,39 @@ def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, 
       write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, f, True)
     f.write("\n")
   f.close()
-  return docs_topic_info_standard
+  return docs_topic_info_standard, documents_tp_ph_repre
+
+def vectorize_keyword_topics_distribution(topics, documents_tp_ph_repre, num_topics, index_vocab):
+  f = open(KEYWORD_TOPICS_DIS_FILE_NAME, "w")
+  keyword_topics_distribution = {}
+  for doc_idx, data in documents_tp_ph_repre.items():
+    for topic_idx, phrases_list in data.items():
+      for phrase in phrases_list:
+        if phrase not in keyword_topics_distribution:
+          keyword_topics_distribution[phrase] = {}
+          for idx in range(num_topics):
+            keyword_topics_distribution[phrase][idx] = 0
+
+  for phrase, topic_dis in keyword_topics_distribution.items():
+    topic_idx = 0
+    for topic in topics:
+      for phrase_val in topic:
+        if phrase == phrase_val:
+          topic_dis[topic_idx] += topic[phrase_val]
+      topic_idx += 1
+
+  for phrase, topic_dis in keyword_topics_distribution.items():
+    words_list = " ".join(str(word) for word in phrase)
+    f.write(_get_string_phrase(phrase, index_vocab) + "@")
+    ct = 0
+    for topic, val in topic_dis.items():
+      if ct < num_topics - 1:
+        f.write(str(val) + ",")
+      else:
+        f.write(str(val))
+      ct += 1
+    f.write("\n")
+  f.close()
 
 def compute_distance_between_articles(docs_topic_info):
   dis_array = np.array(euclidean_distances(docs_topic_info))

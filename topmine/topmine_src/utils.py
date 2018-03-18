@@ -118,7 +118,7 @@ def extract_most_frequent_phrase(topics, documents, doc_idx, phrase_index, index
       else:
         top_ct = 0
         for phrase, val in topic.most_common():
-          if top_ct < 3:
+          if top_ct < 5:
             if len(phrase.split(" ")) > 1:
               phrase_core_string = _get_string_phrase(phrase, index_vocab)
               if ex_phrase.decode("utf-8") == phrase_core_string.decode("utf-8"):
@@ -135,7 +135,7 @@ def write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_inf
       if phrase_extracted != "":
         already_had_phrase = False
         for topic, phrases_list in documents_tp_ph_repre[doc_idx].items():
-          if phrase_extracted in phrases_list:
+          if original_phrase in phrases_list:
             already_had_phrase = True
             break
         if not already_had_phrase:
@@ -184,7 +184,6 @@ def vectorize_keyword_topics_distribution(topics, documents_tp_ph_repre, num_top
       topic_idx += 1
 
   for phrase, topic_dis in keyword_topics_distribution.items():
-    words_list = " ".join(str(word) for word in phrase)
     f.write(_get_string_phrase(phrase, index_vocab) + "@")
     ct = 0
     for topic, val in topic_dis.items():

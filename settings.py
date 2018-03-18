@@ -7,8 +7,7 @@ HOST_PASS = "12345678"
 
 INPUT_DATA_FILE_NAME = "./input/articles.tsv"
 PROCESSED_INPUT_DATA_FILE_NAME = "./topmine/input/data.txt"
-INPUT_STOPWORDS_FILE_NAME = "./input/vietnamese-stopwords.txt"
-PROCESSED_INPUT_STOPWORDS_FILE_NAME = "./topmine/topmine_src/stopwords.txt"
+INPUT_STOPWORDS_FILE_NAME = "./input/stopwords.txt"
 
 PARTITION_DOCS_FILE_NAME = "intermediate_output/partitioneddocs.txt"
 VOCAB_FILE_NAME = "intermediate_output/vocab.txt"

@@ -12,7 +12,6 @@ import datetime
 dir = os.path.dirname(__file__)
 
 def handle_string(input_string):
-
   input_string = input_string.decode("utf-8").lower().encode("utf-8")
 
   for pattern in REDUNDANT_STRING_PATTERN:
@@ -47,6 +46,24 @@ def pyviConvert(input_str):
   input_str = input_str.encode("utf-8")
   return input_str
 
+def load_stopwords():
+  stopwords = []
+  with open(INPUT_STOPWORDS_FILE_NAME) as fp:
+    for line in fp:
+      stopwords.append(line.strip("\n"))
+  return stopwords
+
+def remove_stopwords(data, stopwords):
+  data = data.split()
+
+  filtered_word = []
+  for word in data:
+    if word.strip() not in stopwords:
+      filtered_word.append(word)
+  
+  data_wtout_sw = " ".join(filtered_word)
+  return data_wtout_sw
+
 def write_file(output_file, data, delimiter):
   with open(output_file, "a") as output_file_pt:
     output_file_pt.write(data + delimiter)
@@ -56,6 +73,8 @@ def handle_file(input_file_path, output_file_path, delimiter, need_to_checked):
   db_con = psycopg2.connect(dbname=DB_NAME, user=USER_NAME,
     host=HOST_NAME, password=HOST_PASS)
   cur = db_con.cursor()
+  stopwords = load_stopwords()
+
   with open(input_file_path) as fp:
     for line in fp:
       if need_to_checked:
@@ -75,6 +94,7 @@ def handle_file(input_file_path, output_file_path, delimiter, need_to_checked):
           continue
       else:
         outputPyVi = pyviConvert(line)
+      outputPyVi = remove_stopwords(outputPyVi, stopwords)
       write_file(output_file_path, outputPyVi, delimiter)
   fp.close()
   cur.close()

@@ -249,23 +249,12 @@ class PhraseMining(object):
         for line in f:
             line_lowercase = line.lower()
             sentences_no_punc = re.split(r"[.,;!?]", line_lowercase)
-            stripped_sentences = []
-            for sentence in sentences_no_punc:
-                stripped_sentences.append(sentence)
-            sentences_no_punc = stripped_sentences
             i += len(sentences_no_punc)
             document_range.append(i)
             documents.extend(sentences_no_punc)
             num_docs += 1
 
         documents = [doc.strip() for doc in documents]
-
-        # remove stop-words
-        documents2 = []
-        for doc in documents:
-            documents2.append(' '.join([word for word in doc.split() if word not in stopwords]))
-
-        documents = documents2[:]
 
         return documents, document_range, num_docs
 

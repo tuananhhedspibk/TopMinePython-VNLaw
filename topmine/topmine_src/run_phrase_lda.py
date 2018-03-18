@@ -5,11 +5,11 @@ import utils
 arguments = sys.argv
 
 num_topics = int(arguments[1])
-iteration = 1100
+iteration = 1500
 optimization_burnin = 100
-alpha = 8
+alpha = 10
 optimization_iterations = 50
-beta = 0.1
+beta = 0.5
 
 print 'Running PhraseLDA...'
 

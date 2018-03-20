@@ -33,7 +33,10 @@ class AHCTC:
     if self.dimension == 0:
       self.quit("Dimension for dataset cannot be zero")
 
-  def sup(self, c_id, current_clusters):    
+  def sup(self, c_id, current_clusters):
+    """
+      get supertype of clusters
+    """ 
     return current_clusters[c_id]["supertype"]
 
   def set_sup(self, n_c_id, current_clusters):
@@ -80,6 +83,7 @@ class AHCTC:
       tmp_proximity =  float("+inf")
       ci = 0
       cj = 0
+      # find mi and mj in M with maximum proximity(sup(mi), sup(mj))
       for c_id, data in current_clusters.items():
         for c_id_1, data_1 in current_clusters.items():
           if c_id != c_id_1:
@@ -92,8 +96,11 @@ class AHCTC:
               tmp_proximity = dis
 
       c_ids_l = [ci, cj]
+      # find max key in current_clusters
       n_c_id = max(current_clusters, key=int) + 1
       current_clusters[n_c_id] = {}
+
+      # merge mi and mj as m and add m to M
       current_clusters[n_c_id]["data_points"] = []
       for c_id, data in current_clusters.items():
         if len(c_ids_l) > 0:
@@ -108,6 +115,11 @@ class AHCTC:
       sup_m = self.sup(n_c_id, current_clusters)
       sup_ci = self.sup(ci, current_clusters)
       sup_cj = self.sup(cj, current_clusters)
+
+      # delete mi and mj from M
+      del current_clusters[ci]
+      del current_clusters[cj]
+
       if sup_m == sup_ci:
         self.T[sup_m][sup_cj] = 1
       elif sup_m == sup_cj:
@@ -122,8 +134,6 @@ class AHCTC:
               self.T[k][g] = 1
           self.T[sup_m][sup_ci] = 1
           self.T[sup_m][sup_cj] = 1
-      del current_clusters[ci]
-      del current_clusters[cj]
 
     return current_clusters
 
@@ -152,7 +162,6 @@ class AHCTC:
 
     input_file = open(input_file_name, "r")
     dataset = {}
-    clusters = []
     d_p_c_l = []
     d_p_p_l = []
     
@@ -187,5 +196,4 @@ if __name__ == "__main__":
   ahctc.initialize()
   current_clusters = ahctc.agglomerative_hierarchical_clustering()
   numpy.savetxt('./topmine/output/T.csv', ahctc.T, fmt='%.0f')
-  print current_clusters
   ahctc.show_graph_with_labels()

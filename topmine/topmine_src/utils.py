@@ -3,7 +3,8 @@
 from sklearn.metrics.pairwise import euclidean_distances
 
 import sys
-sys.path.insert(0, "/home/mylaptop/Program/GR/LDA/TopMine")
+sys.path.insert(0, "/app")
+
 from settings import *
 
 import re

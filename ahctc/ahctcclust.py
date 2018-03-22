@@ -5,7 +5,7 @@ import math
 import matplotlib.pyplot as plt
 import networkx as nx
 
-sys.path.insert(0, "/home/mylaptop/Program/GR/LDA/TopMine")
+sys.path.insert(0, "/app")
 
 class AHCTC:
   def __init__(self, ipt_data):

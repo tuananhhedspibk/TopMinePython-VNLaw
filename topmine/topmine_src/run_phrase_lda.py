@@ -5,7 +5,7 @@ import utils
 arguments = sys.argv
 
 num_topics = int(arguments[1])
-iteration = 1500
+iteration = 1000
 optimization_burnin = 100
 alpha = 10
 optimization_iterations = 50

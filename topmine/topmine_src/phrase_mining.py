@@ -174,16 +174,6 @@ class PhraseMining(object):
 
         return true_counter
 
-    def _get_stopwords(self):
-        """
-        Returns a list of stopwords.
-        """
-        f = open("topmine_src/stopwords.txt")
-        stopwords = set()
-        for line in f:
-            stopwords.add(line.rstrip())
-        return stopwords
-
     def _get_word_freq(self, documents):
         """
         Calculates the frequency of each word in the input document.
@@ -237,9 +227,9 @@ class PhraseMining(object):
                 document_of_phrases.append(phrases_of_words)
             self.partitioned_docs.append(document_of_phrases)
 
-    def _preprocess_input(self, filename, stopwords):
+    def _preprocess_input(self, filename):
         """
-        Performs preprocessing on the input document. Includes stopword removal.
+        Performs preprocessing on the input document.
         """
         f = open(filename, 'r')
         documents = []
@@ -269,9 +259,7 @@ class PhraseMining(object):
         @file_name: path to the input corpus
         """
 
-        stopwords = self._get_stopwords()
-
-        documents, document_range, num_docs = self._preprocess_input(file_name, stopwords)
+        documents, document_range, num_docs = self._preprocess_input(file_name)
 
         #calculate frequency of all words
         total_words, word_freq, active_indices = self._get_word_freq(documents)

@@ -5,7 +5,7 @@ def get_output_of(command):
 	return subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
  
 file_name = "input/data.txt"
-num_topics=20
+num_topics=800
 
 phrase_mining_cmd = "python topmine_src/run_phrase_mining.py {0}".format(file_name)
 print(get_output_of(phrase_mining_cmd))

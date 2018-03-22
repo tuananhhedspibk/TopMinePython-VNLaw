@@ -1,7 +1,7 @@
 import json
 import sys
 
-sys.path.insert(0, "/home/mylaptop/Program/GR/LDA/TopMine")
+sys.path.insert(0, "/app")
 
 def load_nodes_list():
   nodes = []

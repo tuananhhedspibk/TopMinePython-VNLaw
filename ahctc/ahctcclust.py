@@ -137,14 +137,6 @@ class AHCTC:
 
     return current_clusters
 
-  def show_graph_with_labels(self):
-    rows, cols = numpy.where(self.T == 1)
-    edges = zip(rows.tolist(), cols.tolist())
-    gr = nx.Graph()
-    gr.add_edges_from(edges)
-    nx.draw(gr, node_size=500, with_labels=True)
-    plt.show()
-
   def load_data(self, input_file_name):
     """
       dataset's structure:
@@ -196,4 +188,3 @@ if __name__ == "__main__":
   ahctc.initialize()
   current_clusters = ahctc.agglomerative_hierarchical_clustering()
   numpy.savetxt('./topmine/output/T.csv', ahctc.T, fmt='%.0f')
-  ahctc.show_graph_with_labels()

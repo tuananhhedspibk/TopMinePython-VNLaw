@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+A_IDS_FILE_NAME = "./topmine/input/a_ids.txt"
 PARTITION_DOCS_FILE_NAME = "intermediate_output/partitioneddocs.txt"
 VOCAB_FILE_NAME = "intermediate_output/vocab.txt"
 PHRASE_TOPICS_FILE_NAME = "intermediate_output/phrase_topics.txt"

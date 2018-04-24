@@ -128,7 +128,7 @@ def extract_most_frequent_phrase(topics, documents, doc_idx, phrase_index, index
       return "", ""
     topic_index += 1
 
-def write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, f, forceAll):
+def write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, forceAll):
   for phrase_idx, topic_index in enumerate(document):
     if docs_topic_info[doc_idx][topic_index] > 0:
       phrase_extracted, original_phrase = extract_most_frequent_phrase(topics, documents,
@@ -141,29 +141,52 @@ def write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_inf
             break
         if not already_had_phrase:
           ph_extracted_ct += 1
+          documents_tp_ph_repre_core_str[doc_idx][topic_index].append(phrase_extracted)
           documents_tp_ph_repre[doc_idx][topic_index].append(original_phrase)
-          f.write(phrase_extracted + ",")
   return ph_extracted_ct
 
 def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, index_vocab, num_topics, topics):
+  doc_ids = load_doc_ids()
   output_file_name = PHRASE_TOPICS_PRO_FILE_NAME
   f = open(output_file_name, "w")
   docs_topic_info_standard = docs_topic_info
   standardized_data(docs_topic_info_standard)
   filter_most_important_topics(docs_topic_info)
   documents_tp_ph_repre = {}
+  documents_tp_ph_repre_core_str = {}
   for doc_idx, document in enumerate(document_phrase_topics):
     ph_extracted_ct = 0
     documents_tp_ph_repre[doc_idx] = {}
+    documents_tp_ph_repre_core_str[doc_idx] = {}
     for i in range(num_topics):
       if docs_topic_info[doc_idx][i] > 0:
         documents_tp_ph_repre[doc_idx][i] = []
-    ph_extracted_ct = write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, f, False)
+        documents_tp_ph_repre_core_str[doc_idx][i] = []
+    ph_extracted_ct = write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, False)
     if ph_extracted_ct == 0:
-      write_phrase_topics(documents_tp_ph_repre, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, f, True)
+      write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, True)
+  for doc_idx, data in documents_tp_ph_repre_core_str.items():
+    f.write(doc_ids[doc_idx] + "@")
+    for topic, phrases_list in data.items():
+      ct = 0
+      for phrase in phrases_list:
+        if ct < len(phrases_list) - 1:
+          f.write(phrase + ",")
+          ct += 1
+        else:
+          f.write(phrase)
+      f.write("]")
     f.write("\n")
   f.close()
   return docs_topic_info_standard, documents_tp_ph_repre
+
+def load_doc_ids():
+  a_ids = []
+  with open(A_IDS_FILE_NAME) as f_p:
+    for line in f_p:
+      a_ids.append(line.strip())
+  f_p.close()
+  return a_ids
 
 def vectorize_keyword_topics_distribution(topics, documents_tp_ph_repre, num_topics, index_vocab):
   f = open(KEYWORD_TOPICS_DIS_FILE_NAME, "w")

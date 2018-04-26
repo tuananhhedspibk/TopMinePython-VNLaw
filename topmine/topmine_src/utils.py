@@ -135,7 +135,7 @@ def write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, d
         doc_idx, phrase_idx, index_vocab, topic_index, forceAll)
       if phrase_extracted != "":
         already_had_phrase = False
-        for topic, phrases_list in documents_tp_ph_repre[doc_idx][topic_index]:
+        for phrases_list in documents_tp_ph_repre[doc_idx][topic_index]:
           if original_phrase in phrases_list:
             already_had_phrase = True
             break
@@ -170,7 +170,7 @@ def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, 
     topics_list = ""
     for topic, phrases_list in data.items():
       for phrase in phrases_list:
-        topics_list += phrase + ","
+        topics_list += phrase + "#"
     f.write(topics_list[:-1] + "\n")
   f.close()
   return docs_topic_info_standard, documents_tp_ph_repre

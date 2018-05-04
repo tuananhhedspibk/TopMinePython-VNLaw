@@ -18,11 +18,14 @@ def store_partitioned_docs(partitioned_docs, path=PARTITION_DOCS_FILE_NAME):
 
 def load_partitioned_docs(path=PARTITION_DOCS_FILE_NAME):
   f = open(path, "r")
+  doc_ids = load_doc_ids()
   partitioned_docs = []
-  document_index = 0
+  document_index = -1
   for line in f:
+    document_index += 1
     line = line.strip()
     if len(line) < 1:
+      doc_ids[document_index] = -11111111
       continue
     phrases = line.split(", ")
     partitioned_doc = []
@@ -30,6 +33,12 @@ def load_partitioned_docs(path=PARTITION_DOCS_FILE_NAME):
       phrase_of_words = map(int,phrase.split(" "))
       partitioned_doc.append(phrase_of_words)
     partitioned_docs.append(partitioned_doc)
+  f.close()
+  f_id = open(A_IDS_FILE_NAME, "w")
+  for d_id in doc_ids:
+    if d_id != -11111111:
+      f_id.write(d_id + "\n")
+  f_id.close()
   return partitioned_docs
 
 def store_vocab(index_vocab, path=VOCAB_FILE_NAME):
@@ -95,7 +104,7 @@ def standardized_data(docs_topic_info):
 def filter_most_important_topics(docs_topic_info):
   for doc in docs_topic_info:
     _sum = sum(doc)
-    topics_filter_thres = float(sum(doc)) / float(len(doc))
+    topics_filter_thres = float(_sum) / float(len(doc))
     for idx, topic_count in enumerate(doc):
       if float(topic_count) / float(topics_filter_thres) < 1:
         doc[idx] = 0
@@ -128,9 +137,9 @@ def extract_most_frequent_phrase(topics, documents, doc_idx, phrase_index, index
       return "", ""
     topic_index += 1
 
-def write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, forceAll):
+def write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, document, doc_idx, docs_topic_info_standard, topics, documents, index_vocab, ph_extracted_ct, forceAll):
   for phrase_idx, topic_index in enumerate(document):
-    if docs_topic_info[doc_idx][topic_index] > 0:
+    if docs_topic_info_standard[doc_idx][topic_index] > 0:
       phrase_extracted, original_phrase = extract_most_frequent_phrase(topics, documents,
         doc_idx, phrase_idx, index_vocab, topic_index, forceAll)
       if phrase_extracted != "":
@@ -151,7 +160,8 @@ def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, 
   f = open(output_file_name, "w")
   docs_topic_info_standard = docs_topic_info
   standardized_data(docs_topic_info_standard)
-  filter_most_important_topics(docs_topic_info)
+  filter_most_important_topics(docs_topic_info_standard)
+  print len(docs_topic_info_standard)
   documents_tp_ph_repre = {}
   documents_tp_ph_repre_core_str = {}
   for doc_idx, document in enumerate(document_phrase_topics):
@@ -159,12 +169,12 @@ def store_phrase_topics_pro(documents, docs_topic_info, document_phrase_topics, 
     documents_tp_ph_repre[doc_idx] = {}
     documents_tp_ph_repre_core_str[doc_idx] = {}
     for i in range(num_topics):
-      if docs_topic_info[doc_idx][i] > 0:
+      if docs_topic_info_standard[doc_idx][i] > 0:
         documents_tp_ph_repre[doc_idx][i] = []
         documents_tp_ph_repre_core_str[doc_idx][i] = []
-    ph_extracted_ct = write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, False)
+    ph_extracted_ct = write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, document, doc_idx, docs_topic_info_standard, topics, documents, index_vocab, ph_extracted_ct, False)
     if ph_extracted_ct == 0:
-      write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, document, doc_idx, docs_topic_info, topics, documents, index_vocab, ph_extracted_ct, True)
+      write_phrase_topics(documents_tp_ph_repre, documents_tp_ph_repre_core_str, document, doc_idx, docs_topic_info_standard, topics, documents, index_vocab, ph_extracted_ct, True)
   for doc_idx, data in documents_tp_ph_repre_core_str.items():
     f.write(doc_ids[doc_idx] + "@")
     topics_list = ""
